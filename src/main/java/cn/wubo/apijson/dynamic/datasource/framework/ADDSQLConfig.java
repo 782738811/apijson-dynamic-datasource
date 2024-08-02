@@ -17,17 +17,19 @@ public class ADDSQLConfig extends APIJSONSQLConfig {
     private String username;
     private String password;
     private String schema;
+    private String dbType;
 
     @Override
     public String getSchema() {
         return schema;
     }
 
-    public void setDb(String url, String username, String password, String sechema) {
+    public void setDb(String url, String username, String password, String sechema, String dbType) {
         this.url = url;
         this.username = username;
         this.password = password;
         this.schema = sechema;
+        this.dbType = dbType;
     }
 
     @JSONField(serialize = false)  // 不在日志打印 账号/密码 等敏感信息

@@ -51,18 +51,38 @@ public class ADDSQLExecutor extends APIJSONSQLExecutor {
             String info = config.getDBUri();
             this.connection = ADDConnectionPool.getConnect(id, info);
             if (this.connection == null || this.connection.isClosed()) {
-                Log.i("AbstractSQLExecutor", "select  connection " + (this.connection == null ? " = null" : "isClosed = " + this.connection.isClosed()));
+                Log.i("AbstractSQLExecutor", "select connection " + (this.connection == null ? " = null" : "isClosed = " + this.connection.isClosed()));
+
+                // 根据数据库类型加载不同的驱动
+                String dbVersion = config.getDBVersion().toLowerCase();
+                switch (dbVersion) {
+                    case "oracle":
+                        Class.forName("oracle.jdbc.driver.OracleDriver");
+                        break;
+                    case "sqlserver":
+                        Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
+                        break;
+                    case "postgresql":
+                        Class.forName("org.postgresql.Driver");
+                        break;
+                    default:
+                        // 默认使用MySQL驱动
+                        Class.forName("com.mysql.cj.jdbc.Driver");
+                        break;
+                }
+
                 this.connection = DriverManager.getConnection(config.getDBUri(), config.getDBAccount(), config.getDBPassword());
                 ADDConnectionPool.addConnect(id, info, this.connection);
             }
-            logger.info("ADDSQLExecutor Executing SQL: " + config.getSQL(true));
-            log.info("ADDSQLExecutor", "Executing SQL: " + config.getSQL(true));
             int ti = this.getTransactionIsolation();
             if (ti != 0) {
                 this.begin(ti);
             }
             return this.connection;
-        } else
+        } else {
             return super.getConnection(config);
+        }
     }
+
+
 }

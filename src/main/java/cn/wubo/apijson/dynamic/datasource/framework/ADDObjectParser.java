@@ -32,29 +32,36 @@ public class ADDObjectParser extends APIJSONObjectParser {
 
     @Override
     public SQLConfig newSQLConfig(RequestMethod method, String table, String alias, JSONObject request, List<Join> joinList, boolean isProcedure) throws Exception {
-        ADDSQLConfig ADDSQLConfig = (ADDSQLConfig) APIJSONSQLConfig.newSQLConfig(method, table, alias, request, joinList, isProcedure);
-        // 添加这行日志
-        log.info("ADDObjectParser", "Creating new SQLConfig for table: " + table);
+        ADDSQLConfig addSQLConfig = (ADDSQLConfig) APIJSONSQLConfig.newSQLConfig(method, table, alias, request, joinList, isProcedure);
         Map<String, Object> map = getCustomMap();
+
         String dsUrl = "";
         String dsUserName = "";
         String dsPassword = "";
-        if (map != null && map.size() > 0 && map.containsKey("@dsUrl") && map.containsKey("@dsUserName") && map.containsKey("@dsPassword")) {
+        String dbType = "";
+
+        if (map != null && map.size() > 0 && map.containsKey("@dsUrl") && map.containsKey("@dsUserName") && map.containsKey("@dsPassword") && map.containsKey("@dbType")) {
             dsUrl = String.valueOf(map.get("@dsUrl"));
             dsUserName = String.valueOf(map.get("@dsUserName"));
             dsPassword = String.valueOf(map.get("@dsPassword"));
+            dbType = String.valueOf(map.get("@dbType"));
         } else {
+            // 使用默认数据源
             DruidDataSource druidDataSource = (DruidDataSource) SpringUtil.getBean(DataSource.class);
             dsUrl = druidDataSource.getUrl();
             dsUserName = druidDataSource.getUsername();
             dsPassword = druidDataSource.getPassword();
+            dbType = "mysql"; // 假设默认是MySQL
         }
+
         int i = dsUrl.lastIndexOf("/");
         int j = dsUrl.lastIndexOf("?");
         String start = dsUrl.substring(0, i);
-        String end = dsUrl.substring(j);
-        String db = dsUrl.substring(i + 1, j);
-        ADDSQLConfig.setDb(start + end, dsUserName, dsPassword, db);
-        return ADDSQLConfig;
+        String end = j > 0 ? dsUrl.substring(j) : "";
+        String db = dsUrl.substring(i + 1, j > 0 ? j : dsUrl.length());
+
+        addSQLConfig.setDb(start + end, dsUserName, dsPassword, db, dbType);
+        return addSQLConfig;
     }
+
 }
