@@ -11,6 +11,7 @@ limitations under the License.*/
 
 package cn.wubo.apijson.dynamic.datasource.controller;
 
+import apijson.Log;
 import apijson.RequestMethod;
 import apijson.StringUtil;
 import apijson.framework.APIJSONController;
@@ -60,14 +61,26 @@ public class DemoController extends APIJSONController<Long> {
      * @param session
      * @return
      */
-    @ApiOperation(value = "批量处理增删改查", httpMethod = "POST", notes = "批量处理增删改查")
-    @PostMapping(value = "saveBatch")  // 如果和其它的接口 URL 冲突，可以加前缀，例如改为 crud/{method} 或 Controller 注解 @RequestMapping("crud")
+    @PostMapping(value = "saveBatch")
     @ADDTransactional
     public JSONArray crud(@RequestBody List<RecordDTO> records, HttpSession session) {
+        Log.i("DemoController", "Received saveBatch request with " + records.size() + " records");
         JSONArray ja = new JSONArray();
         for (RecordDTO rec : records) {
-            JSONObject jo = JSON.parseObject(super.crud(rec.getMethod(), rec.getData().toJSONString(), session));
-            if (jo.containsKey("code") && jo.getInteger("code") != 200) throw new RuntimeException(jo.getString("msg"));
+            String method = rec.getMethod().toLowerCase();
+            String data = rec.getData().toJSONString();
+
+            // 对于 GET 请求，使用不同的处理方法
+            JSONObject jo;
+            if ("get".equals(method)) {
+                jo = JSON.parseObject(super.gets(data, session));
+            } else {
+                jo = JSON.parseObject(super.crud(method, data, session));
+            }
+
+            if (jo.containsKey("code") && jo.getInteger("code") != 200) {
+                throw new RuntimeException(jo.getString("msg"));
+            }
             ja.add(jo);
         }
         return ja;

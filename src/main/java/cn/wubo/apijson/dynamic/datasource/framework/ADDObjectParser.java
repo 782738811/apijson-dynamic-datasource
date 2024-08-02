@@ -8,6 +8,7 @@ import apijson.orm.SQLConfig;
 import cn.hutool.extra.spring.SpringUtil;
 import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.fastjson.JSONObject;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.servlet.http.HttpSession;
 import javax.sql.DataSource;
@@ -22,6 +23,7 @@ import java.util.Map;
  * @version 1.0
  * @date 2022.09.05
  */
+@Slf4j
 public class ADDObjectParser extends APIJSONObjectParser {
 
     public ADDObjectParser(HttpSession session, JSONObject request, String parentPath, SQLConfig arrayConfig, boolean isSubquery, boolean isTable, boolean isArrayMainTable) throws Exception {
@@ -31,6 +33,8 @@ public class ADDObjectParser extends APIJSONObjectParser {
     @Override
     public SQLConfig newSQLConfig(RequestMethod method, String table, String alias, JSONObject request, List<Join> joinList, boolean isProcedure) throws Exception {
         ADDSQLConfig ADDSQLConfig = (ADDSQLConfig) APIJSONSQLConfig.newSQLConfig(method, table, alias, request, joinList, isProcedure);
+        // 添加这行日志
+        log.info("ADDObjectParser", "Creating new SQLConfig for table: " + table);
         Map<String, Object> map = getCustomMap();
         String dsUrl = "";
         String dsUserName = "";

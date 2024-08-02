@@ -3,7 +3,10 @@ package cn.wubo.apijson.dynamic.datasource.framework;
 import apijson.Log;
 import apijson.framework.APIJSONSQLExecutor;
 import apijson.orm.SQLConfig;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
 import java.sql.Connection;
@@ -18,7 +21,10 @@ import java.sql.SQLException;
  * @version 1.0
  * @date 2022.08.20
  */
+@Slf4j
 public class ADDSQLExecutor extends APIJSONSQLExecutor {
+
+    private static final Logger logger = LoggerFactory.getLogger(ADDSQLExecutor.class);
 
     @Override
     public void rollback() throws SQLException {
@@ -49,6 +55,8 @@ public class ADDSQLExecutor extends APIJSONSQLExecutor {
                 this.connection = DriverManager.getConnection(config.getDBUri(), config.getDBAccount(), config.getDBPassword());
                 ADDConnectionPool.addConnect(id, info, this.connection);
             }
+            logger.info("ADDSQLExecutor Executing SQL: " + config.getSQL(true));
+            log.info("ADDSQLExecutor", "Executing SQL: " + config.getSQL(true));
             int ti = this.getTransactionIsolation();
             if (ti != 0) {
                 this.begin(ti);
